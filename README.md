@@ -1,0 +1,1 @@
+# Text_to_SQL_for_Low_Resource_Languages

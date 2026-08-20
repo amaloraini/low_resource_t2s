@@ -1,6 +1,6 @@
 # Text-to-SQL for Low-Resource Languages
 
-This repository contains the code and resources for the paper **Text-to-SQL for Low-Resource Languages: A Unified Large Language Model Framework Evaluated on Arabic, Japanese, and Vietnamese**[cite: 1]. The framework was developed by Abdulrahman Aloraini[cite: 1] (العُريني).
+This repository contains the code and resources for the paper **Text-to-SQL for Low-Resource Languages: A Unified Large Language Model Framework Evaluated on Arabic, Japanese, and Vietnamese**. The framework was developed by Abdulrahman Aloraini[cite: 1] (العُريني).
 
 ## Overview
 
@@ -27,9 +27,9 @@ The framework achieves strong results across the evaluated low-resource language
 
 | Language | Execution Accuracy (EX) | Normalized Exact Set Match (ESM) |
 | :--- | :--- | :--- |
-| **Arabic** | 75.2%[cite: 1] | 66.6%[cite: 1] |
-| **Japanese** | 75.2%[cite: 1] | 66.0%[cite: 1] |
-| **Vietnamese** | 80.0%[cite: 1] | 72.3%[cite: 1] |
+| **Arabic** | 75.2% | 66.6% |
+| **Japanese** | 75.2% | 66.0% |
+| **Vietnamese** | 80.0% | 72.3% |
 
 *(Note: The persistent 9-10 percentage-point EX-ESM gap reflects limitations in LLM-generated SQL, demonstrating that single-instance EX should be reported alongside ESM for a complete evaluation[cite: 1].)*
 
@@ -47,5 +47,4 @@ The trained QLoRA adapters for each language are available for download[cite: 1]
 * **Japanese (JP) Adapter:** [Download Here](https://drive.google.com/file/d/10NbBwrdR6dvmt8BTb4ebqbfdvOsmZYIk/view?usp=sharing)
 * **Vietnamese (VI) Adapter:** [Download Here](https://drive.google.com/file/d/1650Oyk6DzjPfTF81LmIc3-ffi4evLrUn/view?usp=sharing)
 
-If you use this code or the adapters, please cite the original article:
-> Aloraini, A. Text-to-SQL for Low-Resource Languages: A Unified Large Language Model Framework Evaluated on Arabic, Japanese, and Vietnamese. *Electronics* **2026**.[cite: 1]    `
+[cite: 1]    `

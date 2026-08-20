@@ -1,10 +1,10 @@
 # Text-to-SQL for Low-Resource Languages
 
-This repository contains the code and resources for the paper **Text-to-SQL for Low-Resource Languages: A Unified Large Language Model Framework Evaluated on Arabic, Japanese, and Vietnamese**. The framework was developed by Abdulrahman Aloraini.
+This repository contains the code and resources for the paper **Text-to-SQL for Low-Resource Languages: A Unified Large Language Model Framework Evaluated on Arabic, Japanese, and Vietnamese**. 
 
 ## Overview
 
-This project introduces a unified large language model (LLM)-based pipeline designed for low-resource text-to-SQL semantic parsing[cite: 1]. While most research focuses on English, this framework provides a language-agnostic pipeline evaluated on Arabic, Japanese, and Vietnamese benchmarks[cite: 1]. 
+This project introduces a unified large language model (LLM)-based pipeline designed for low-resource text-to-SQL semantic parsing. While most research focuses on English, this framework provides a language-agnostic pipeline evaluated on Arabic, Japanese, and Vietnamese benchmarks.
 
 The system fine-tunes the `Qwen2.5-Coder-7B-Instruct` model using QLoRA. Separate language adapters are trained using the same architecture, where only the training data and native-language column descriptions vary by language.
 
@@ -35,13 +35,13 @@ The framework achieves strong results across the evaluated low-resource language
 ## Repository Contents
 
 This repository includes:
-* The code for the unified LLM-based text-to-SQL pipeline[cite: 1].
-* Evaluation and normalization scripts[cite: 1].
-* A 149-entry dataset-audit spreadsheet identifying translation errors in the Ar-Spider dataset[cite: 1].
+* The code for the unified LLM-based text-to-SQL pipeline.
+* Evaluation and normalization scripts.
+* A 149-entry dataset-audit spreadsheet identifying translation errors in the Ar-Spider dataset.
 
 ## Pre-trained Adapters
 
-The trained QLoRA adapters for each language are available for download[cite: 1]:
+The trained QLoRA adapters for each language are available for download:
 * **Arabic (AR) Adapter:** [Download Here](https://drive.google.com/file/d/1WVcGFI0HicPsdw_d2AdOC0S9Ot3PNdQ3/view?usp=sharing)
 * **Japanese (JP) Adapter:** [Download Here](https://drive.google.com/file/d/10NbBwrdR6dvmt8BTb4ebqbfdvOsmZYIk/view?usp=sharing)
 * **Vietnamese (VI) Adapter:** [Download Here](https://drive.google.com/file/d/1650Oyk6DzjPfTF81LmIc3-ffi4evLrUn/view?usp=sharing)

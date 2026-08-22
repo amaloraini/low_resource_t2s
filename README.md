@@ -47,7 +47,7 @@ The trained QLoRA adapters for each language are available for download:
 * **Japanese (JP) Adapter:** [Download Here](https://drive.google.com/file/d/10NbBwrdR6dvmt8BTb4ebqbfdvOsmZYIk/view?usp=sharing)
 * **Vietnamese (VI) Adapter:** [Download Here](https://drive.google.com/file/d/1650Oyk6DzjPfTF81LmIc3-ffi4evLrUn/view?usp=sharing)
 
-To use a pre-trained adapter without retraining, unzip it into your Google Drive under the folder name the notebook expects (see [Google Drive layout](#google-drive-layout)) and skip the training cells.
+To use a pre-trained adapter without retraining, unzip it into your Google Drive under the folder name the notebook and skip the training cells.
 
 ## Getting Started
 

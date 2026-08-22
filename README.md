@@ -19,7 +19,7 @@ The prompt-enrichment pipeline consists of five key components:
 
 At the inference stage, the pipeline also employs:
 * **Multi-temperature self-consistency voting:** Generates eight SQL candidates and uses execution-based voting to select the final query.
-* **Execution-guided repair stage:** Applies post-processing procedures like identifier fixing, hallucinated-filter removal, and value-literal grounding.
+* **Execution-guided repair stage:** Applies five post-processing procedures: identifier fixing, hallucinated-filter removal, value-literal grounding, error-feedback self-correction (up to two retries), and a low-confidence candidate-expansion fallback (a second eight-candidate run with a raw-DDL prompt when the winning vote group holds three or fewer votes).
 
 ## Key Results
 
@@ -31,6 +31,8 @@ The framework achieves strong results across the evaluated low-resource language
 | **Japanese** | 75.2% | 66.0% |
 | **Vietnamese** | 80.0% | 72.3% |
 
+Raw (un-normalized) ESM is 65.4%, 64.8%, and 71.3% respectively; the normalized figures apply four validated gold-blind rewrite rules (NOT IN ↔ EXCEPT, MIN/MAX ↔ ORDER BY LIMIT 1, IN-lists ↔ OR-chains, BETWEEN ↔ range predicates) to both predicted and gold SQL. An English same-pipeline reference run reaches 85.3% EX, and Llama-3.1-8B-Instruct reaches 74.6% EX on Arabic under the identical pipeline.
+
 ## Repository Contents
 
 This repository includes:
@@ -38,7 +40,9 @@ This repository includes:
 * `Japanese_Text2SQL_FT_and_Inference.ipynb` – end-to-end pipeline for Japanese (MultiSpider-JA).
 * `Vietnamese_Text2SQL_FT_and_Inference.ipynb` – end-to-end pipeline for Vietnamese (MultiSpider-VI).
 * Evaluation and normalization scripts (EM normalizer ablation and official Spider Exact Set Match evaluation are included as cells at the end of each notebook).
-* A 149-entry dataset-audit spreadsheet identifying translation errors in the Ar-Spider dataset.
+* A 149-entry dataset-audit spreadsheet identifying translation errors in the Ar-Spider dataset (15 in the development set, 134 in the training set).
+
+The official repository for the paper is https://github.com/amaloraini/low_resource_t2s.
 
 ## Pre-trained Adapters
 
@@ -55,7 +59,7 @@ The notebooks are written for **Google Colab** and assume a mounted Google Drive
 
 ### 1. Requirements
 
-* Google Colab with a GPU runtime. An **A100 (40 GB)** is recommended: QLoRA training of the 7B model plus the BGE-M3 embedding model (~2.3 GB VRAM) fit comfortably. A T4 (16 GB) can run inference but training is tight; set `TRAIN_LOAD_EMBEDDINGS = False` if you run out of memory.
+* Google Colab with a GPU runtime. The reported adapters were trained on a single **NVIDIA A100 80 GB** and evaluated on a single **NVIDIA L4 24 GB**. An A100 40 GB also fits QLoRA training of the 7B model plus the BGE-M3 embedding model (~2.3 GB VRAM). A T4 (16 GB) can run inference but training is tight; set `TRAIN_LOAD_EMBEDDINGS = False` if you run out of memory.
 * A Google Drive account with at least ~5 GB free (datasets, caches, adapter checkpoints, result files).
 * Internet access from the runtime (Hugging Face Hub for the base model and `BAAI/bge-m3`, and Google Translate through `deep-translator` for the translation hints).
 
@@ -63,7 +67,7 @@ All Python dependencies (`transformers`, `peft`, `bitsandbytes`, `trl`, `dataset
 
 ### 2. Download the datasets
 
-**You must download the benchmark datasets before running the code.** They are the property of their respective authors; please download them from the official sources and cite them.
+**You must download the benchmark datasets before running the code.** They are the property of their respective authors; please download them from the official sources and cite them (see [Citation](#citation)).
 
 | Language | Dataset | Official source |
 | :--- | :--- | :--- |
@@ -71,7 +75,7 @@ All Python dependencies (`transformers`, `peft`, `bitsandbytes`, `trl`, `dataset
 | Japanese, Vietnamese | **MultiSpider** (`ja`, `vi` splits) | https://github.com/longxudou/multispider (also mirrored on Hugging Face: `dreamerdeo/multispider`) |
 | Databases + `tables.json` (all languages) | **Spider** | https://yale-lily.github.io/spider (Hugging Face mirror: `xlangai/spider`) |
 
-Both Ar-Spider and MultiSpider reuse the original Spider SQLite databases and `tables.json`. Make sure the `database/` folder (one sub-folder per `db_id`, each containing a `.sqlite` file) is present; execution accuracy (EX) and value hints cannot be computed without it.
+Ar-Spider contains 8,657 training and 1,034 development questions; MultiSpider-JA and MultiSpider-VI each contain 8,659 training and 1,034 development questions, all over the same 166 Spider databases. Both Ar-Spider and MultiSpider reuse the original Spider SQLite databases and `tables.json`. Make sure the `database/` folder (one sub-folder per `db_id`, each containing a `.sqlite` file) is present; execution accuracy (EX) and value hints cannot be computed without it.
 
 ### 3. Put the datasets in Google Drive
 
@@ -106,7 +110,7 @@ The notebooks read and write the following files under `/content/drive/MyDrive/`
 
 | File / folder (prefix `ar_`, `ja_`, or `vi_`) | Purpose |
 | :--- | :--- |
-| `<lang>_column_descriptions.json` | Native-language column descriptions (generated from `tables_<lang>.json` + Google Translate for JA/VI). |
+| `<lang>_column_descriptions.json` | Native-language column descriptions. For JA/VI these are generated by Section C0 of the notebook from `tables_<lang>.json` + Google Translate. For Arabic they were generated with the fine-tuned model; the released Arabic notebook loads them from this cache file, so download them from the adapter release (or generate your own) before running. |
 | `<lang>_table_glosses.json` | Native-language table glosses for the bilingual M-Schema. |
 | `<lang>_*_train_english.json` | Cached Google Translate translations of the training questions. |
 | `<lang>_*_english_grounded.json` | Cached, DB-grounded English translations of the dev questions. |
@@ -125,9 +129,9 @@ Run the cells top-to-bottom. Each notebook is organised as:
 2. **Configuration** (`Configuration` and `Tier 1 Feature Configuration` cells): LoRA rank/alpha, epochs, learning rate, sequence length, and the on/off toggles for each prompt component (M-Schema, value hints, column linking, value injection, sample rows, English hint) and inference technique (self-consistency, multi-temperature, self-correction, identifier fixing, filter removal, SQL value grounding). The `Sanity Check` cell asserts that all components are enabled, which is the configuration reported in the paper; disable it if you want to run ablations.
 3. **Shared function definitions** (Section B) and **pre-training resource loading** (Section C): loads BGE-M3 and the native-language description caches. For JA/VI, Section C0 first builds the descriptions from `tables_<lang>.json`.
 4. **Training data construction** (Section D) with prompt alignment and 20% feature dropout, followed by the preview cells (Section E).
-5. **Training** (`Load Model + Apply QLoRA` → `Train`) and **saving the adapter to Drive**. The training and save cells are wrapped in `'''...'''` in the released notebooks so that the inference path can be run with a pre-trained adapter; remove the quotes to train from scratch (roughly 2–3 hours on an A100 for 3 epochs).
+5. **Training** (`Load Model + Apply QLoRA` → `Train`) and **saving the adapter to Drive**. The training and save cells are wrapped in `'''...'''` in the released notebooks so that the inference path can be run with a pre-trained adapter; remove the quotes to train from scratch. Training takes about 6 h 10 min per language on an A100 80 GB (3 epochs, 1,029 optimizer steps, effective batch size 24, learning rate 5e-5, max sequence length 4,096).
 6. **Free Training Memory → Load Adapter from Google Drive.** After training, it is safest to restart the runtime, re-run steps 1–3, and then continue from `Load Adapter from Google Drive`.
-7. **Inference**: translation hints, post-processing functions, batched generation with self-consistency voting, self-correction, and `Run Evaluation (Dev Set)`. Evaluation over the full dev set takes on the order of 1–2 hours on an A100 with 8 candidates per question. `RESUME_FROM` lets you continue an interrupted run.
+7. **Inference**: translation hints, post-processing functions, batched generation with self-consistency voting, self-correction, and `Run Evaluation (Dev Set)`. Evaluation over the full 1,034-sample dev set with 8 candidates per question takes about 8 h 10–30 min on an L4 24 GB (faster on an A100). `RESUME_FROM` lets you continue an interrupted run.
 8. **Results**: summary tables, saving to JSON/Drive, the **EM Normalizer Impact Analysis** (progressive normalization ablation), and the **Spider Exact Set Match** cell, which downloads the official Spider evaluation script and computes ESM for direct comparison with the Ar-Spider and MultiSpider papers.
 
 ### 6. Common issues
@@ -137,7 +141,6 @@ Run the cells top-to-bottom. Each notebook is organised as:
 * **Google Translate rate limits** – translations are cached to Drive after the first run; re-run the cell and it will resume from the cache.
 * **Execution accuracy is `None`/`WARN` for some samples** – the corresponding `.sqlite` file is missing from `database/`.
 * **Different numbers from the paper** – sampling-based voting introduces small run-to-run variance; the notebooks set deterministic seeds (`SC_DETERMINISTIC_SEEDS`) but results may still vary by a few tenths of a point across GPU types and library versions.
-
 
 
 ## License and Data Usage

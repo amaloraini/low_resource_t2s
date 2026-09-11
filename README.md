@@ -226,7 +226,34 @@ If you use this code, the adapters, or the Ar-Spider audit, please cite the pape
 }
 ```
 
-Please also cite the benchmark datasets: Ar-Spider (Almohaimeed et al., ACM SAC 2024), MultiSpider (Dou et al., AAAI 2023), and Spider (Yu et al., EMNLP 2018).
+Please also cite the benchmark datasets:
+
+```bibtex
+@inproceedings{almohaimeed2024arspider,
+  title     = {Ar-Spider: Text-to-SQL in Arabic},
+  author    = {Almohaimeed, Saleh and Almohaimeed, Saad and Al Ghanim, Mansour and Wang, Liqiang},
+  booktitle = {Proceedings of the 39th ACM/SIGAPP Symposium on Applied Computing (SAC)},
+  pages     = {1024--1030},
+  year      = {2024}
+}
+
+@inproceedings{dou2023multispider,
+  title     = {MultiSpider: Towards Benchmarking Multilingual Text-to-SQL Semantic Parsing},
+  author    = {Dou, Longxu and Gao, Yan and Pan, Mingyang and Wang, Dingzirui and Che, Wanxiang and Zhan, Dechen and Lou, Jian-Guang},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {37},
+  pages     = {12745--12753},
+  year      = {2023}
+}
+
+@inproceedings{yu2018spider,
+  title     = {Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task},
+  author    = {Yu, Tao and Zhang, Rui and Yang, Kai and Yasunaga, Michihiro and Wang, Dongxu and Li, Zifan and Ma, James and Li, Irene and Yao, Qingning and Roman, Shanelle and others},
+  booktitle = {Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  pages     = {3911--3921},
+  year      = {2018}
+}
+```
 
 ## License and Data Usage
 
